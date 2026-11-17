@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Year 6 Food Chain Challenge</title>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#20312b;background:#f4f8f4}
+*{box-sizing:border-box}body{margin:0;padding:20px}.wrap{max-width:820px;margin:auto}
+header,.card{background:#fff;border:1px solid #d8e5da;border-radius:16px;padding:20px;margin:14px 0}
+header{background:#e7f3e8}h1{margin:5px 0 8px;font-size:clamp(1.6rem,4vw,2.3rem)}
+.sub{color:#52665a}.badge{display:inline-block;background:#d5ead8;padding:6px 10px;border-radius:20px;font-size:.85rem;font-weight:bold}
+label{display:block;font-weight:bold;margin:13px 0 6px}
+input,select,textarea{width:100%;font:inherit;padding:12px;border:1px solid #b9cbbd;border-radius:9px;background:#fff;color:#20312b}
+textarea{min-height:82px;resize:vertical}
+button{font:inherit;font-weight:bold;padding:12px 16px;border:0;border-radius:10px;background:#236b43;color:white;cursor:pointer;min-height:44px}
+button.secondary{background:#e7eee8;color:#20312b;border:1px solid #cbd9ce}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row button{flex:1}
+.timer{font-size:1.4rem;font-weight:bold;color:#236b43}
+.hint{background:#f0f6f0;border-radius:10px;padding:12px;margin-top:10px}
+.small{font-size:.92rem;color:#52665a}.status{margin-top:12px;font-weight:bold}
+footer{font-size:.85rem;color:#52665a;padding:8px 2px}
+@media(max-width:520px){body{padding:12px}.card,header{padding:16px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header>
+ <span class="badge">YEAR 6 · SCIENCE · 5-MINUTE TEAM CHALLENGE</span>
+ <h1>🌿 Food Chain Challenge</h1>
+ <p class="sub">Work with your two teammates in your assigned breakout room. Create a food chain, think like scientists and get ready to share your ideas.</p>
+ <div class="row"><div class="timer" id="clock" aria-live="off">05:00</div><button type="button" id="start">Start 5-minute timer</button><button type="button" class="secondary" id="reset">Reset</button></div>
+ <p class="small">Suggested timing: 1 minute to organise, 2 minutes to create, 1 minute to investigate, 1 minute to share.</p>
+</header>
+
+<section class="card">
+ <h2>1. Join your team</h2>
+ <label for="student">Your name</label><input id="student" autocomplete="name" placeholder="Enter your name" required>
+ <label for="room">Choose your assigned breakout room</label>
+ <select id="room">
+  <option value="">Select your room</option>
+  <option>Room 1 – Forest 🌳</option><option>Room 2 – Ocean 🌊</option><option>Room 3 – Desert 🏜️</option>
+ </select>
+ <div class="hint small" id="hint">Choose your room to see your ecosystem prompt.</div>
+</section>
+
+<section class="card">
+ <h2>2. Create your food chain</h2>
+ <p class="small">As a team, choose at least four organisms and put them in the correct feeding order. Use arrows to show the direction of energy transfer.</p>
+ <label for="chain">Our food chain</label>
+ <textarea id="chain" placeholder="Organism → Organism → Organism → Organism"></textarea>
+ <label for="producer">Who is the producer?</label><input id="producer" placeholder="Write your answer">
+ <label for="consumer">Name one consumer</label><input id="consumer" placeholder="Write your answer">
+</section>
+
+<section class="card">
+ <h2>3. Think like a scientist!</h2>
+ <p>If one organism in your food chain disappeared, what might happen to the other organisms?</p>
+ <label for="effect">Our prediction</label>
+ <textarea id="effect" placeholder="We predict that..."></textarea>
+</section>
+
+<section class="card">
+ <h2>4. Get ready to share</h2>
+ <label for="title">Our team name (optional)</label><input id="title" placeholder="Choose a team name">
+ <p class="small">Choose one speaker. In the main room, explain your food chain and share your prediction in about 20 seconds.</p>
+ <div class="row">
+  <button type="button" id="submit">Finish and check answers</button>
+  <button type="button" class="secondary" id="save">Download my answers</button>
+ </div>
+ <div class="status" id="status" role="status" aria-live="polite"></div>
+</section>
+<footer>
+When you submit, your answers are sent to your teacher. You can also download a copy of your answers.
+</footer>
+</main>
+<script>
+(()=>{
+ const $=id=>document.getElementById(id);
+ const SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyJn-MESoGXomCbOdoMYWuT_2KfLkBlJCBcSYlgSihoz4OLKfO2lIfy6KPEDNp5Y6bO/exec';
+ const hints={
+  'Room 1 – Forest 🌳':'Forest prompt: Think about trees, grass, insects, birds and other forest animals.',
+  'Room 2 – Ocean 🌊':'Ocean prompt: Think about algae, plankton, small fish, larger fish and ocean predators.',
+  'Room 3 – Desert 🏜️':'Desert prompt: Think about desert plants, insects, lizards, snakes and birds of prey.'
+ };
+ $('room').addEventListener('change',()=>{$('hint').textContent=hints[$('room').value]||'Choose your room to see your ecosystem prompt.'});
+ let seconds=300, interval=null;
+ function showTime(){$('clock').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}
+ $('start').addEventListener('click',()=>{
+  if(interval)return;
+  if(seconds===0)seconds=300;
+  interval=setInterval(()=>{seconds--;showTime();if(seconds<=0){clearInterval(interval);interval=null;$('status').textContent='Time is up! Return to the main room and share your food chain.'}},1000);
+ });
+ $('reset').addEventListener('click',()=>{clearInterval(interval);interval=null;seconds=300;showTime();$('status').textContent='Timer reset.'});
+ function answers(){return {
+  'Student':$('student').value.trim(),'Breakout room':$('room').value,
+  'Team name':$('title').value.trim(),'Food chain':$('chain').value.trim(),
+  'Producer':$('producer').value.trim(),'Consumer':$('consumer').value.trim(),
+  'Prediction if an organism disappears':$('effect').value.trim()
+ }}
+ $('submit').addEventListener('click',async()=>{
+  const a=answers();const missing=[];
+  if(!a.Student)missing.push('your name');if(!a['Breakout room'])missing.push('your breakout room');
+  if(!a['Food chain'])missing.push('your food chain');if(!a.Producer)missing.push('the producer');if(!a.Consumer)missing.push('one consumer');if(!a['Prediction if an organism disappears'])missing.push('your prediction');
+  if(missing.length){$('status').textContent='Please complete: '+missing.join(', ')+'.';return;}
+  const button=$('submit');button.disabled=true;$('status').textContent='Sending your answers...';
+  try{
+   await fetch(SUBMISSION_URL,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({student:a.Student,room:a['Breakout room'],answers:a})
+   });
+   $('status').textContent='Your answers have been submitted. Thank you! You can download a copy for yourself too.';
+  }catch(error){
+   $('status').textContent='We could not send your answers. Please try again or download your answers and share them with your teacher.';
+  }finally{button.disabled=false;}
+ });
+ $('save').addEventListener('click',()=>{
+  const a=answers();const text='YEAR 6 FOOD CHAIN CHALLENGE\n\n'+Object.entries(a).map(([k,v])=>k+': '+(v||'Not provided')).join('\n');
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');link.href=url;link.download='food-chain-answers-'+(a.Student||'student').replace(/[^a-z0-9_-]/gi,'_')+'.txt';document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+  $('status').textContent='Your answer file has been downloaded. Share it with your teacher.';
+ });
+ showTime();
+})();
+</script>
+</body>
+</html>
